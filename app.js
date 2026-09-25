@@ -14,7 +14,8 @@
   const DEFAULT_X_MIN = -10;
   const DEFAULT_X_MAX = 10;
   const SAMPLE_COUNT = 2400;
-  const DRAW_DURATION_MS = 1500;
+  const DRAW_DURATION_MS = 5000;
+  const LOOP_PAUSE_MS = 900;
   const PURPLE = '#a855f7';
   const PURPLE_GLOW = '#c084fc';
 
@@ -304,16 +305,22 @@
     if (animationFrame) cancelAnimationFrame(animationFrame);
     animationStart = performance.now();
 
-    const step = (now) => {
-      const progress = Math.min(1, (now - animationStart) / DRAW_DURATION_MS);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      drawProgress(eased);
+    const cycleDuration = DRAW_DURATION_MS + LOOP_PAUSE_MS;
 
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(step);
+    const step = (now) => {
+      const elapsed = now - animationStart;
+      const cycleElapsed = elapsed % cycleDuration;
+
+      if (cycleElapsed <= DRAW_DURATION_MS) {
+        const progress = Math.min(1, cycleElapsed / DRAW_DURATION_MS);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        drawProgress(eased);
       } else {
-        animationFrame = null;
+        // Mantém a equação completa visível antes de reiniciar o loop.
+        drawProgress(1);
       }
+
+      animationFrame = requestAnimationFrame(step);
     };
 
     animationFrame = requestAnimationFrame(step);
