@@ -14,8 +14,8 @@
   const DEFAULT_X_MIN = -10;
   const DEFAULT_X_MAX = 10;
   const SAMPLE_COUNT = 2400;
-  const DRAW_DURATION_MS = 5000;
-  const LOOP_PAUSE_MS = 900;
+  const DRAW_DURATION_MS = 10000;
+  const LOOP_PAUSE_MS = 500;
   const PURPLE = '#a855f7';
   const PURPLE_GLOW = '#c084fc';
 
@@ -215,22 +215,45 @@
       yMax += 1;
     }
 
-    const yPad = (yMax - yMin) * 0.12 || 1;
+    // Usa apenas a região em que a função possui pontos reais. Isso evita, por
+    // exemplo, que funções com domínio pequeno fiquem comprimidas no centro.
+    const validPoints = rawPoints.filter((point) => point.y !== null);
+    let xMin = validPoints[0].x;
+    let xMax = validPoints[validPoints.length - 1].x;
+
+    if (xMin === xMax) {
+      xMin -= 1;
+      xMax += 1;
+    }
+
+    const xPad = (xMax - xMin) * 0.07 || 1;
+    const yPad = (yMax - yMin) * 0.10 || 1;
+    xMin -= xPad;
+    xMax += xPad;
     yMin -= yPad;
     yMax += yPad;
 
-    const paddingX = Math.max(18, width * 0.055);
-    const paddingY = Math.max(18, height * 0.05);
-    const graphWidth = width - paddingX * 2;
-    const graphHeight = height - paddingY * 2;
+    const padding = Math.max(16, Math.min(width, height) * 0.045);
+    const graphWidth = Math.max(1, width - padding * 2);
+    const graphHeight = Math.max(1, height - padding * 2);
+    const xRange = xMax - xMin;
+    const yRange = yMax - yMin;
+
+    // A mesma escala é usada nos dois eixos para não deformar a curva em telas
+    // altas e estreitas. A área excedente apenas centraliza o gráfico.
+    const scale = Math.min(graphWidth / xRange, graphHeight / yRange);
+    const renderedWidth = xRange * scale;
+    const renderedHeight = yRange * scale;
+    const offsetX = (width - renderedWidth) / 2;
+    const offsetY = (height - renderedHeight) / 2;
 
     points = rawPoints.map((point) => {
-      if (point.y === null || point.y < yMin || point.y > yMax) {
+      if (point.y === null || point.y < yMin || point.y > yMax || point.x < xMin || point.x > xMax) {
         return null;
       }
 
-      const px = paddingX + ((point.x - DEFAULT_X_MIN) / (DEFAULT_X_MAX - DEFAULT_X_MIN)) * graphWidth;
-      const py = paddingY + (1 - ((point.y - yMin) / (yMax - yMin))) * graphHeight;
+      const px = offsetX + (point.x - xMin) * scale;
+      const py = offsetY + (yMax - point.y) * scale;
       return { x: px, y: py };
     });
   }

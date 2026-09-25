@@ -139,7 +139,10 @@ button {
 }
 
 .graph-panel {
-  min-height: 62svh;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: min(58svh, 680px);
+  margin: 4px auto 0;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -149,7 +152,7 @@ button {
 #graphCanvas {
   display: block;
   width: 100%;
-  height: clamp(440px, 68svh, 760px);
+  height: 100%;
   touch-action: pan-y;
 }
 
@@ -179,7 +182,10 @@ button {
     width: 100%;
   }
 
-  #graphCanvas {
-    height: 70svh;
+  .graph-panel {
+    /* Em telas como 1080 x 2340, mantém o gráfico próximo de quadrado em vez
+       de ocupar quase toda a altura disponível. */
+    aspect-ratio: 1 / 1;
+    max-height: min(52svh, 560px);
   }
 }
